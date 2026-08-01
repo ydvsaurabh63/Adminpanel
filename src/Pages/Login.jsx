@@ -22,12 +22,16 @@ const Login = () => {
                 formData
             )
 
-            if (res.status === 200) {
+            if (res.status === 200 && res.data.success) {
+                const userData = res.data.user || res.data.userData || null
+
                 localStorage.setItem("token", res.data.token)
-                localStorage.setItem(
-                    "user",
-                    JSON.stringify(res.data.userData)
-                )
+                if (userData) {
+                    localStorage.setItem(
+                        "user",
+                        JSON.stringify(userData)
+                    )
+                }
 
                 alert("Login Successfully")
 
@@ -37,10 +41,12 @@ const Login = () => {
                 })
 
                 navigate("/dashboard")
+            } else {
+                alert(res.data.message || "Invalid Email or Password")
             }
         } catch (error) {
             console.log(error)
-            alert("Invalid Email or Password")
+            alert(error.response?.data?.message || "Invalid Email or Password")
         }
     }
 
