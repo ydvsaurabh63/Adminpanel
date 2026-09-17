@@ -7,6 +7,7 @@ const Orders = () => {
   const [search, setSearch] = useState("");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const api_url = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Fetch Orders
   const fetchOrders = async () => {
@@ -14,7 +15,7 @@ const Orders = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/order/get-all-orders",
+        `${api_url}/api/order/get-all-orders`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -29,6 +30,7 @@ const Orders = () => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchOrders();

@@ -6,6 +6,7 @@ import axios from "axios";
 const Users = () => {
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
+  const api_url = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Fetch Users
   const fetchUsers = async () => {
@@ -13,7 +14,7 @@ const Users = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/user/get-all-users",
+        `${api_url}/api/user/get-all-users`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -21,7 +22,7 @@ const Users = () => {
         }
       );
 
-      setUsers(res.data.users);
+      setUsers(res.data.users || []);
     } catch (error) {
       console.log("Error Fetching Users:", error);
     }
@@ -43,7 +44,7 @@ const Users = () => {
       if (!confirmDelete) return;
 
       await axios.delete(
-        `http://localhost:5000/api/user/delete-user/${id}`,
+        `${api_url}/api/user/delete-user/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -56,9 +57,10 @@ const Users = () => {
       fetchUsers();
     } catch (error) {
       console.log("Delete Error:", error);
-      alert("Failed to delete user");
+      alert(error.response?.data?.message || "Failed to delete user");
     }
   };
+
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) =>
@@ -139,11 +141,12 @@ const Users = () => {
                   <td>
                     <div className="user-info">
                       <div className="avatar">
-                        {user.name.charAt(0).toUpperCase()}
+                        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                       </div>
-                      {user.name}
+                      {user.name || "Unnamed User"}
                     </div>
                   </td>
+
 
                   <td>{user.email}</td>
 

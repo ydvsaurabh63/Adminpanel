@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./CSS/DashboardLayout.css";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Menu,
@@ -14,11 +14,12 @@ import {
 } from "lucide-react";
 
 const DashboardLayout = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 992);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [loginPerson, setLoginPerson] = useState("");
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState("admin");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -26,15 +27,27 @@ const DashboardLayout = ({ children }) => {
 
     if (!token) {
       navigate("/");
-    } else {
-      const Loginedperson = JSON.parse(user);
-      setLoginPerson(Loginedperson.name);
-      setRole(Loginedperson.role);
+    } else if (user) {
+      try {
+        const Loginedperson = JSON.parse(user);
+        setLoginPerson(Loginedperson.name || "Admin");
+        setRole(Loginedperson.role || "admin");
+      } catch (e) {
+        setLoginPerson("Admin");
+      }
     }
-  }, []);
+  }, [navigate]);
+
+  // Automatically close sidebar on mobile when route changes
+  useEffect(() => {
+    if (window.innerWidth <= 992) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/");
   };
 
@@ -86,20 +99,43 @@ const DashboardLayout = ({ children }) => {
     ],
   };
 
+  const activeTabs = tabs[role] || tabs.admin;
+
   return (
     <div className="dashboard-outer">
-      {/* Sidebar */}
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
+      {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : "close"}`}>
         <div className="sidebar-logo">
           <div className="logo-icon">D</div>
-
           {sidebarOpen && <span>Dashboard</span>}
+          <button
+            className="sidebar-mobile-close"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <div className="sidebar-tabs">
-          {tabs[role]?.map((tab, index) => (
-            <NavLink key={index} to={tab.path} className="sidebar-tab-name">
+          {activeTabs.map((tab, index) => (
+            <NavLink
+              key={index}
+              to={tab.path}
+              className={({ isActive }) =>
+                `sidebar-tab-name ${isActive ? "active" : ""}`
+              }
+              onClick={() => {
+                if (window.innerWidth <= 992) setSidebarOpen(false);
+              }}
+            >
               {tab.icon}
               {sidebarOpen && <span>{tab.name}</span>}
             </NavLink>
@@ -115,17 +151,16 @@ const DashboardLayout = ({ children }) => {
       </aside>
 
       {/* Main */}
-
       <div className="main">
         {/* Header */}
-
         <header className="dashboard-header">
           <div className="dashboard-header-left">
             <button
               className="menu-btn"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle Sidebar"
             >
-              {sidebarOpen ? <X /> : <Menu />}
+              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
 
             <div>
@@ -137,31 +172,25 @@ const DashboardLayout = ({ children }) => {
           <div className="dashboard-header-right">
             <div className="dashboard-admin-outer">
               <div className="admin">
-                {loginPerson
-                  ? loginPerson.charAt(0).toUpperCase()
-                  : "A"}
+                {loginPerson ? loginPerson.charAt(0).toUpperCase() : "A"}
               </div>
 
-              {sidebarOpen && (
-                <div className="admin-dropdown">
-                  <div className="admin-dropdown-left">
-                    <p>{loginPerson}</p>
-                    <span>{role}</span>
-                  </div>
-
-                  <ChevronDown size={18} />
+              <div className="admin-dropdown">
+                <div className="admin-dropdown-left">
+                  <p>{loginPerson}</p>
+                  <span>{role}</span>
                 </div>
-              )}
+                <ChevronDown size={16} />
+              </div>
             </div>
           </div>
         </header>
 
         {/* Content */}
-
         <main className="dashboard-content">{children}</main>
       </div>
     </div>
   );
 };
 
-export default DashboardLayout;
+export default DashboardLayout;

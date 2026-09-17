@@ -1,0 +1,18 @@
+/* =========================================================
+   Admin Panel - Category Page Stylesheet (100% Responsive)
+========================================================= */
+
+.admin-category-page {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 100%;
+}
+
+.category-preview-img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
